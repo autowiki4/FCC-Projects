@@ -1,0 +1,55 @@
+import copy,ast
+import random
+class Hat:
+    def __init__(self,**kwargs):
+        self.argument = kwargs
+        self.contents = []
+
+        for x in self.argument:
+            # Append the item multiple times to the list
+            for _ in range(self.argument[x]):
+                (self.contents).append(x)
+
+    def __str__(self):
+        return f'{self.contents}'
+
+    def draw(self,balls):
+        self.balls = balls
+        self.removed = []
+
+        # Create a copy of the original list
+        shuffled_list = (self.contents).copy()
+
+        # Shuffle the copy
+        random.shuffle(shuffled_list)
+        # Remove the required number of items from the shuffled list
+        for _ in range(self.balls):
+            (self.removed).append(shuffled_list.pop())
+        self.contents = shuffled_list
+        return self.removed
+
+def experiment(hat,expected_balls, num_balls_drawn,num_experiments):
+    selected_count = 0
+
+    # hat_list = ast.literal_eval(hat.contents)
+
+    hat_copy = copy.deepcopy(hat.contents) # Create a deep copy to avoid modifying the original hat
+    # Use random.choices to select items with replacement
+    selected_items = random.choices(hat_copy,k=num_balls_drawn)
+
+    for x in expected_balls:
+        ref = x.get()
+        x_count = selected_items.count(x)
+        for _ in range(num_experiments):
+            if x_count == ref:
+                selected_count += 1
+
+    return selected_count / num_experiments
+
+
+
+hat1 = Hat(black=6, red=4, green=3)
+probability = experiment(hat=hat1,
+                  expected_balls={"red":2,"green":1},
+                  num_balls_drawn=5,
+                  num_experiments=2000)
