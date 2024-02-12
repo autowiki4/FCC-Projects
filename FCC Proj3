@@ -1,24 +1,36 @@
-import decimal
+import decimal, math
+
+def print_title(title):
+            length = len(title)
+            space = 30 - length
+            no_space = space/2
+
+            if space % 2 == 0:
+                no_space = int(no_space)
+                return f"{('*' * no_space)}{title}{('*' * no_space)}"
+            elif space % 2 != 0:
+                no_space = int(no_space-0.5)
+                return f"{('*' * (no_space+1))}{title}{('*' * no_space)}"
+
+        # convert number to float
+def float_amount(money):
+            # Converting the total balance number to decimal
+            deciValue = decimal.Decimal(money)
+            # rounding the number up to 2 digits after the decimal point
+            float_balance = str(deciValue.quantize(decimal.Decimal('0.00')))
+            return float_balance
+
 class Category:
     def __init__(self,name):
         self.name = name  # name of budget category
         self.ledger = []
-
+        self.withdraw_list = []
     # get_balance method
     def get_balance(self):
-        self.total_money = 0
-        global list_money_items
-        list_money_items = []
-        for x in (self.ledger):
-            list_money_items.append(int(x.get("amount")))
-
-        # noinspection PyUnreachableCode
-        for x in list_money_items:
-            self.total_money += x
-        return self.total_money
+        return sum(map(lambda expense: expense['amount'], self.ledger))
 
     def print_ledger(self):
-        return self.ledger
+         return self.ledger
 
     # check funds method
     def check_funds(self, sample_amount):
@@ -33,7 +45,6 @@ class Category:
     def deposit(self,amount,description=None):
         self.amount = amount
         self.description = description
-
         (self.ledger).append({"amount": amount, "description": description})
 
 
@@ -42,62 +53,135 @@ class Category:
         self.w_amount = w_amount
         self.w_description = w_description
 
-        if self.check_funds(self.w_amount) == False:
+        (self.withdraw_list).append(w_amount)
+
+        if  not self.check_funds(self.w_amount):
             return False
-        elif self.check_funds(self.w_amount) == True:
+        elif self.check_funds(self.w_amount):
             (self.ledger).append({"amount": -w_amount, "description": w_description})
             return True
+
+    def withdraw_sum(self):
+        return sum(self.withdraw_list)
 
     def transfer(self,t_amount,other_budget):
         self.t_amount = t_amount
         self.other_budget = other_budget
 
-        if self.check_funds(self.t_amount) == False:
+        if not self.check_funds(self.t_amount):
             return False
-        elif self.check_funds(self.t_amount) == True:
+        elif self.check_funds(self.t_amount):
             (self.ledger).append({"amount": -t_amount, "description": f'Transfer to {other_budget.name}'})
             (other_budget.ledger).append({"amount": t_amount, "description": f'Transfer from {self.name}'})
             return True
 
+
     def __str__(self):
-        def print_title(title):
-            length = len(title)
-            space = 30 - length
-            no_space = space/2
+        result = ""
+        for x in self.print_ledger():
+            #to extract the amount and desciption for each item in the list
+            float_money = float_amount(x["amount"])
+            try:
+                remove = 30 - len(x["description"])
+                result += (f'{x["description"][:24]}{float_money.rjust(remove)}\n')
+            except:
+                remove = 30 - len(str(x["amount"]))
+                result += (f'{float_money.rjust(30)}\n')
+        return f'{print_title(self.name)}\n{result}Total:{str(float_amount(self.get_balance())).rjust(24)}'
 
-            if space % 2 == 0:
-                no_space = int(no_space)
-                return f"{('*' * no_space)}{title}{('*' * no_space)}"
-            elif space % 2 != 0:
-                no_space = int(no_space-0.5)
-                return f"{('*' * (no_space+1))}{title}{('*' * no_space)}"
+def create_spend_chart(categories):
+    total_list = []
+    for i in categories:
+        total_list.append(i.withdraw_sum())
+    total = int(sum(total_list))
 
-        def print_items(list):
-            for x in list:
-                money = x.get("amount")
-                describe = x.get("description")
-                remove = 30 - len(describe)
-                # Converting the given number to decimal
-                decimalValue = decimal.Decimal(money)
-                # rounding the number upto 2 digits after the decimal point
-                float_money = str(decimalValue.quantize(decimal.Decimal('0.00')))
-                return f'{describe[:24]}{float_money.rjust(remove)}\n'
+    # Delineate the lines
+    first_line = ['100|']
+    second_line = [' 90|']
+    third_line = [' 80|']
+    fourth_line = [' 70|']
+    fifth_line = [' 60|']
+    sixth_line = [' 50|']
+    seventh_line = [' 40|']
+    eighth_line = [' 30|']
+    ninth_line = [' 20|']
+    tenth_line = [' 10|']
+    eleventh_line = ['  0|']
+    lines = [eleventh_line,tenth_line,ninth_line,eighth_line,seventh_line,sixth_line,fifth_line,fourth_line,third_line,
+             second_line,first_line]
+    real_lines = [first_line, second_line,third_line,fourth_line,fifth_line,sixth_line,seventh_line,eighth_line,
+                  ninth_line,tenth_line,eleventh_line]
 
-        # Converting the total balance number to decimal
-        deciValue = decimal.Decimal(self.get_balance())
-        # rounding the number up to 2 digits after the decimal point
-        float_balance = deciValue.quantize(decimal.Decimal('0.00'))
+    global max_name,print_list
+    name_list = []
+    print_list = []
+    for budget in categories:
+        name_list.append(budget.name)
 
-        # return ledger category items
-        return f'{print_title(self.name)}\n{print_items(self.ledger)}Total: {float_balance}'
+        list_total = int(sum(budget.withdraw_list))
+        circle_list = []
+        percent = int(math.floor((list_total / total) * 100)) // 10
+        for _ in range(percent + 1):
+            circle_list.append('o')
+
+        no_lines = 0
+        circle_index = 0
+        while no_lines < 11:
+            try:
+                (lines[no_lines]).append(circle_list[circle_index])
+            except:
+                pass
+            no_lines += 1
+            circle_index += 1
+    max_length = max(len(name) for name in name_list)
+    for budg in name_list:
+        name_char = []
+        for char in budg:
+            name_char.append(char)
+        for _ in range((max_length-len(budg))):
+            name_char.append(' ')
+        print_list.append(name_char)
 
 
-# def create_spend_chart(categories):
+
+    printed_lines = '-' * (1 + len(categories)*3)
+    def print_lines(samp_lines):
+        print_result = ''
+        for line in samp_lines:
+            result = '  '.join(line)
+            line_det = result.index('|')
+            result = result[:line_det+1]+result[line_det+2:]
+            print_result += f'{result}\n'
+        return print_result
+
+    resu = f'Percentage spent by category\n{print_lines(real_lines)}    {printed_lines}\n'
+
+    max_name = max(len(obje) for obje in print_list)
+    columns = '     '
+    index = 0
+    while index <= (max_name-1):
+        columns += '  '.join(string[index] for string in print_list)
+        columns += '\n     '
+        index += 1
+    modi_columns = columns.rstrip('\n     ')
+    resu += modi_columns
+    return resu
+
 
 food = Category("Food")
 food.deposit(1000, "initial deposit")
-food.deposit(1000, "second deposit")
 food.withdraw(10.15, "groceries")
 food.withdraw(15.89, "restaurant and more food for dessert")
 print(food.get_balance())
+clothing = Category("Clothing")
+food.transfer(50, clothing)
+clothing.withdraw(25.55)
+clothing.withdraw(100)
+auto = Category("Auto")
+auto.deposit(1000, "initial deposit")
+auto.withdraw(15)
+
 print(food)
+print(clothing)
+
+print(create_spend_chart([food, clothing, auto]))
