@@ -1,0 +1,226 @@
+def add_time(start,duration,day=''): # day is the optional variable
+
+    # Edit the day
+    def convert_to_proper_name(raw_name):
+        work = raw_name.lower()
+        new_name = work[0].upper() + work[1:]
+        return new_name
+
+    if day != '':
+        day = convert_to_proper_name(day)
+
+    colon_original_time = start.index(":")
+    try:
+        end = start.index(" AM")
+    except:
+        end = start.index(" PM")
+    # extract the number of hours from the start time
+    hour_original_time = int(start[:colon_original_time])
+
+    #extraxt the number of minutes from the start time
+    minute_original_time = int(start[colon_original_time+1:end])
+
+    # code for the 'duration'
+    colon_duration = duration.index(":")
+
+    # extract hour from duration
+    hour_duration = int(duration[:colon_duration])
+
+    # etract minute from duration
+    minute_duration = int(duration[colon_duration+1:])
+
+    new_minute = minute_duration + minute_original_time
+    global quotient_add
+    quotient_add = new_minute // 60  # left over hours if sum of minutes exceed 60
+    if new_minute >= 60:
+        new_minute = new_minute % 60
+        if new_minute <= 9:
+            new_minute = f'0{new_minute}' # to display singke digit minutes appropriately
+        else:
+            pass
+    else:
+        new_minute = new_minute
+        if new_minute <= 9:
+            new_minute = f'0{new_minute}' # to display singke digit minutes appropriately
+        else:
+            pass
+
+    new_hour = hour_duration + hour_original_time + quotient_add
+    if start[colon_original_time + 4:] == "AM":
+        new_hour = new_hour
+    elif start[colon_original_time + 4:] == "PM":
+        new_hour = new_hour + 12
+    global leftoverdays
+    leftoverdays = new_hour // 24
+
+    global new_day_week
+    new_day_week = day
+
+    if day != "":
+        # code to change the day of the week
+        dict_days_of_week = {'Sunday': 1,
+                             'Monday': 2,
+                             'Tuesday': 3,
+                             'Wednesday': 4,
+                             'Thursday': 5,
+                             'Friday': 6,
+                             'Saturday': 7
+                             }
+
+        # function to retrieve key of a value to be used shortly
+        def get_key(val):
+            for key, value in dict_days_of_week.items():
+                if val == value:
+                    return key
+                else:
+                    pass
+
+        # function to retrieve value of a keyto be used later
+        def get_value(keys):
+            for key, value in dict_days_of_week.items():
+                if keys == key:
+                    return value
+                else:
+                    pass
+
+        no = int(get_value(day))
+        new_day = (no + leftoverdays) % 7
+        new_day_week = get_key(new_day)
+
+    else:
+        pass
+
+    global new_time
+    new_time = start
+    if start[colon_original_time+4:] == "AM" and day != "":
+        if leftoverdays > 1:
+                new_hour = new_hour % 24
+                if new_hour == 0:
+                    new_time = f'12:{new_minute} AM, {new_day_week} ({leftoverdays} days later)'
+                elif new_hour > 12:
+                    new_hour = new_hour - 12
+                    new_time = f'{new_hour}:{new_minute} PM, {new_day_week} ({leftoverdays} days later)'
+                elif new_hour == 12:
+                    new_time = f'{new_hour}:{new_minute} PM, {new_day_week} ({leftoverdays} days later)'
+                else:
+                    new_time = f'{new_hour}:{new_minute} AM, {new_day_week} ({leftoverdays} days later)'
+        elif leftoverdays == 1:
+                new_hour = new_hour % 24
+                if new_hour == 0:
+                    new_time = f'12:{new_minute} AM, {new_day_week} (next day)'
+                elif new_hour > 12:
+                    new_hour = new_hour - 12
+                    new_time = f'{new_hour}:{new_minute} PM, {new_day_week} (next day)'
+                elif new_hour == 12:
+                    new_time = f'{new_hour}:{new_minute} PM, {new_day_week} (next day)'
+                else:
+                    new_time = f'{new_hour}:{new_minute} AM, {new_day_week} (next day)'
+        elif leftoverdays < 1:
+                if new_hour > 12:
+                    new_hour = new_hour - 12
+                    new_time = f'{new_hour}:{new_minute} PM, {new_day_week}'
+                elif new_hour == 12:
+                    new_time = f'{new_hour}:{new_minute} PM, {new_day_week}'
+                else:
+                    new_time = f'{new_hour}:{new_minute} AM, {new_day_week}'
+    elif start[colon_original_time+4:] == "AM" and day == "":
+        if leftoverdays > 1:
+                new_hour = new_hour % 24
+                if new_hour == 0:
+                    new_time = f'12:{new_minute} AM ({leftoverdays} days later)'
+                elif new_hour > 12:
+                    new_hour = new_hour - 12
+                    new_time = f'{new_hour}:{new_minute} PM ({leftoverdays} days later)'
+                elif new_hour == 12:
+                    new_time = f'{new_hour}:{new_minute} PM ({leftoverdays} days later)'
+                else:
+                    new_time = f'{new_hour}:{new_minute} AM ({leftoverdays} days later)'
+        elif leftoverdays == 1:
+                new_hour = new_hour % 24
+                if new_hour == 0:
+                    new_time = f'12:{new_minute} AM (next day)'
+                elif new_hour > 12:
+                    new_hour = new_hour - 12
+                    new_time = f'{new_hour}:{new_minute} PM (next day)'
+                elif new_hour == 12:
+                    new_time = f'{new_hour}:{new_minute} PM (next day)'
+                else:
+                    new_time = f'{new_hour}:{new_minute} AM (next day)'
+        elif leftoverdays < 1:
+                if new_hour > 12:
+                    new_hour = new_hour - 12
+                    new_time = f'{new_hour}:{new_minute} PM'
+                elif new_hour == 12:
+                    new_time = f'{new_hour}:{new_minute} PM'
+                else:
+                    new_time = f'{new_hour}:{new_minute} AM'
+
+    elif start[colon_original_time+4:] == "PM" and day != "":
+        if leftoverdays > 1:
+                new_hour = new_hour % 24
+                if new_hour == 0:
+                    new_time = f'12:{new_minute} AM, {new_day_week} ({leftoverdays} days later)'
+                elif new_hour > 12:
+                    new_hour = new_hour - 12
+                    new_time = f'{new_hour}:{new_minute} PM, {new_day_week} ({leftoverdays} days later)'
+                elif new_hour == 12:
+                    new_time = f'{new_hour}:{new_minute} PM, {new_day_week} ({leftoverdays} days later)'
+                else:
+                    new_time = f'{new_hour}:{new_minute} AM, {new_day_week} ({leftoverdays} days later)'
+        elif leftoverdays == 1:
+                new_hour = new_hour % 24
+                if new_hour == 0:
+                    new_time = f'12:{new_minute} AM, {new_day_week} (next day)'
+                elif new_hour > 12:
+                    new_hour = new_hour - 12
+                    new_time = f'{new_hour}:{new_minute} PM, {new_day_week} (next day)'
+                elif new_hour == 12:
+                    new_time = f'{new_hour}:{new_minute} PM, {new_day_week} (next day)'
+                else:
+                    new_time = f'{new_hour}:{new_minute} AM, {new_day_week} (next day)'
+        elif leftoverdays < 1:
+                if new_hour > 12:
+                    new_hour = new_hour - 12
+                    new_time = f'{new_hour}:{new_minute} PM, {new_day_week}'
+                elif new_hour == 12:
+                    new_time = f'{new_hour}:{new_minute} PM, {new_day_week}'
+                else:
+                    new_time = f'{new_hour}:{new_minute} AM, {new_day_week}'
+    elif start[colon_original_time+4:] == "PM" and day == "":
+        if leftoverdays > 1:
+                new_hour = new_hour % 24
+                if new_hour == 0:
+                    new_time = f'12:{new_minute} AM ({leftoverdays} days later)'
+                elif new_hour > 12:
+                    new_hour = new_hour - 12
+                    new_time = f'{new_hour}:{new_minute} PM ({leftoverdays} days later)'
+                elif new_hour == 12:
+                    new_time = f'{new_hour}:{new_minute} PM ({leftoverdays} days later)'
+                else:
+                    new_time = f'{new_hour}:{new_minute} AM ({leftoverdays} days later)'
+        elif leftoverdays == 1:
+                new_hour = new_hour % 24
+                if new_hour == 0:
+                    new_time = f'12:{new_minute} AM (next day)'
+                elif new_hour > 12:
+                    new_hour = new_hour - 12
+                    new_time = f'{new_hour}:{new_minute} PM (next day)'
+                elif new_hour == 12:
+                    new_time = f'{new_hour}:{new_minute} PM (next day)'
+                else:
+                    new_time = f'{new_hour}:{new_minute} AM (next day)'
+        elif leftoverdays < 1:
+                if new_hour > 12:
+                    new_hour = new_hour - 12
+                    new_time = f'{new_hour}:{new_minute} PM'
+                elif new_hour == 12:
+                    new_time = f'{new_hour}:{new_minute} PM'
+                else:
+                    new_time = f'{new_hour}:{new_minute} AM'
+    return new_time
+
+
+
+
+print(add_time("11:30 AM", "2:32", "MonDAy"))
+print(add_time("11:06 PM", "2:02"))
